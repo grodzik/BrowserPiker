@@ -36,6 +36,11 @@ class Browser(string name, string path, string icon)
     {
         return sprintf("{\n\"name\": \"%s\",\n\"path\": \"%s\",\n\"icon\": \"%s\"\n}", name, path, icon);
     }
+
+    void open(string url)
+    {
+        Process.run(({ path, url }));
+    }
 }
 
 class Config()
@@ -95,6 +100,8 @@ int main(int argc, array argv)
 
     Config conf = Config();
 
+    Standards.URI uri = Standards.URI(argv[1]);
+
     argv = GTK2.setup_gtk(argv);
     GTK2.Window toplevel = GTK2.Window( GTK2.WINDOW_TOPLEVEL );
     mapping root_geometry = GTK2.root_window()->get_geometry();
@@ -105,11 +112,11 @@ int main(int argc, array argv)
         button->add(GTK2.Image(b->icon));
         button->signal_connect(
             "pressed",
-            lambda(mixed widget, array(string) cmd) {
+            lambda(mixed widget, string url) {
                 toplevel->hide_all();
-                Process.run(cmd);
+                b.open(url);
                 toplevel->signal_emit("destroy"); },
-            ({ b->path, argv[1]}));
+            (string)uri);
         hbox->add(button);
         if(b->name == conf->default_browser)
             hbox->set_focus_child(button);
