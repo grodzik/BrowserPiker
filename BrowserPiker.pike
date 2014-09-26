@@ -130,11 +130,11 @@ int main(int argc, array argv)
         button->add(GTK2.Image(b->icon));
         button->signal_connect(
             "pressed",
-            lambda(mixed widget, string url) {
+            lambda(mixed widget, mapping args) {
                 toplevel->hide_all();
-                b.open(url);
+                args["browser"]->open(args["url"]);
                 toplevel->signal_emit("destroy"); },
-            (string)uri);
+            ([ "browser": b, "url": (string)uri ]));
         hbox->add(button);
         if(b->name == conf->default_browser)
             hbox->set_focus_child(button);
