@@ -15,6 +15,29 @@ sample configuration that works on Ubuntu 12.04 and 1920x1080 resolution. This f
 to work properly.
 
 4. Additionally you can make BrowserPiker default web browser, for example using xdg-settings:
-```
-xdg-settings set default-web-browser BrowserPiker.desktop
-```
+```xdg-settings set default-web-browser BrowserPiker.desktop```
+
+# Configuration
+
+## Complete list of config options:
+
+### Main options
+|option|type|is required|
+-------|----|------------
+browsers|array|yes
+position|object|no
+default_browser|string|no
+
+### `browsers` options
+|option|type|is required|
+-------|----|------------
+name|string|yes
+path|string|yes
+icon|string|yes
+domains|array|no
+
+### `position` options
+|option|type|is required|
+-------|----|------------
+x|integer|no
+y|integer|no
