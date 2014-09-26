@@ -3,7 +3,11 @@
         {
             "name": "Chrome",
             "path": "/usr/bin/google-chrome-unstable",
-            "icon": "/opt/google/chrome-unstable/product_logo_128.png"
+            "icon": "/opt/google/chrome-unstable/product_logo_128.png",
+            "domains": [
+                "*google.com",
+                "*gmail.com"
+            ]
         },
         {
             "name": "Firefox",
@@ -13,7 +17,10 @@
         {
             "name": "Opera Developer",
             "path": "/usr/bin/opera-developer",
-            "icon": "/usr/share/icons/hicolor/128x128/apps/opera-developer.png"
+            "icon": "/usr/share/icons/hicolor/128x128/apps/opera-developer.png",
+            "domains": [
+                "*opera.com"
+            ]
         }
     ],
     "position": {

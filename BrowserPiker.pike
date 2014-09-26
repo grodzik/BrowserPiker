@@ -27,10 +27,15 @@ SOFTWARE.
 
 class Browser(string name, string path, string icon)
 {
+    private array(string) domains = ({ });
+
     string _sprintf()
     {
         return sprintf("%s(%s, %s)", name, path, icon);
     }
+
+    array(string) get_domains() { return domains; }
+    void set_domains(array(string) d) { domains = d; }
 
     string encode_json()
     {
@@ -49,6 +54,7 @@ class Config()
     string default_browser = "";
     int x = 0;
     int y = 0;
+    mapping(string:string) patterns = ([ ]);
 
     void create()
     {
@@ -69,6 +75,10 @@ class Config()
                 if( empty(b->icon) )
                     werror("Missing icon for %O\n", b->name);
                 browsers += ({ Browser(b->name, b->path, b->icon) });
+                if(!empty(b->domains))
+                {
+                    browsers[-1]->set_domains(b->domains);
+                }
             }
             if(conf["default_browser"] && sizeof(conf["default_browser"]))
                 default_browser = conf["default_browser"];
@@ -101,6 +111,14 @@ int main(int argc, array argv)
     Config conf = Config();
 
     Standards.URI uri = Standards.URI(argv[1]);
+
+    foreach(conf->browsers, Browser b)
+        if(b->get_domains() && sizeof(b->get_domains()) &&
+                Array.any(b->get_domains(), glob, uri.host))
+        {
+            b.open((string)uri);
+            return 0;
+        }
 
     argv = GTK2.setup_gtk(argv);
     GTK2.Window toplevel = GTK2.Window( GTK2.WINDOW_TOPLEVEL );
