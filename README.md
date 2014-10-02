@@ -32,7 +32,7 @@ default_browser|string|no
 |option|type|is required|
 -------|----|------------
 name|string|yes
-path|string|yes
+cmd|string|yes
 icon|string|yes
 domains|array|no
 

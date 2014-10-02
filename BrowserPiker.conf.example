@@ -2,7 +2,7 @@
     "browsers": [
         {
             "name": "Chrome",
-            "path": "/usr/bin/google-chrome-unstable",
+            "cmd": "/usr/bin/google-chrome-unstable",
             "icon": "/opt/google/chrome-unstable/product_logo_128.png",
             "domains": [
                 "*google.com",
@@ -11,12 +11,12 @@
         },
         {
             "name": "Firefox",
-            "path": "/usr/bin/firefox",
+            "cmd": "/usr/bin/firefox",
             "icon": "/usr/share/pixmaps/firefox.png"
         },
         {
             "name": "Opera Developer",
-            "path": "/usr/bin/opera-developer",
+            "cmd": "/usr/bin/opera-developer",
             "icon": "/usr/share/icons/hicolor/128x128/apps/opera-developer.png",
             "domains": [
                 "*opera.com"

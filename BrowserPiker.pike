@@ -25,13 +25,13 @@ SOFTWARE.
 */
 
 
-class Browser(string name, string path, string icon)
+class Browser(string name, string cmd, array(string) args, string icon)
 {
     private array(string) domains = ({ });
 
     string _sprintf()
     {
-        return sprintf("%s(%s, %s)", name, path, icon);
+        return sprintf("%s(%s, %s)", name, cmd, icon);
     }
 
     array(string) get_domains() { return domains; }
@@ -39,12 +39,12 @@ class Browser(string name, string path, string icon)
 
     string encode_json()
     {
-        return sprintf("{\n\"name\": \"%s\",\n\"path\": \"%s\",\n\"icon\": \"%s\"\n}", name, path, icon);
+        return sprintf("{\n\"name\": \"%s\",\n\"cmd\": \"%s\",\n\"icon\": \"%s\"\n}", name, cmd, icon);
     }
 
     void open(string url)
     {
-        Process.run(({ path, url }));
+        Process.run(({ cmd }) + args + ({ url }));
     }
 }
 
@@ -67,14 +67,15 @@ class Config()
             mixed conf = Standards.JSON.decode_utf8(Stdio.read_file(path));
             foreach(conf["browsers"], mapping b)
             {
-                if(empty(b->name) || empty(b->path))
+                if(empty(b->name) || empty(b->cmd))
                 {
-                    werror("Missing name: %O or path: %O\n", b->name, b->path);
+                    werror("Missing name: %O or cmd: %O\n", b->name, b->cmd);
                     continue;
                 }
                 if( empty(b->icon) )
                     werror("Missing icon for %O\n", b->name);
-                browsers += ({ Browser(b->name, b->path, b->icon) });
+                array(string) cmd = b->cmd/" ";
+                browsers += ({ Browser(b->name, cmd[0], cmd[1..] || ({ }), b->icon) });
                 if(!empty(b->domains))
                 {
                     browsers[-1]->set_domains(b->domains);
