@@ -125,6 +125,9 @@ int main(int argc, array argv)
     GTK2.Window toplevel = GTK2.Window( GTK2.WINDOW_TOPLEVEL );
     mapping root_geometry = GTK2.root_window()->get_geometry();
     GTK2.Hbox hbox = GTK2.Hbox(0, 0);
+    GTK2.Statusbar status = GTK2.Statusbar();
+    int id = status->get_context_id("test");
+    status->push(id, sprintf("URL: %s", uri));
     foreach(conf->browsers, Browser b)
     {
         GTK2.Button button = GTK2.Button();
@@ -155,7 +158,10 @@ int main(int argc, array argv)
             }
         }
     });
-    toplevel->add(hbox);
+    GTK2.Vbox vbox = GTK2.Vbox(0, 0);
+    vbox->add(hbox);
+    vbox->add(status);
+    toplevel->add(vbox);
     toplevel->signal_connect( "destroy", lambda() { exit(0); } );
     toplevel->move(conf->x,conf->y);
     toplevel->show_all();
