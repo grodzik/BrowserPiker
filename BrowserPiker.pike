@@ -39,7 +39,7 @@ class Browser(string name, string cmd, array(string) args, string icon)
 
     string encode_json()
     {
-        return sprintf("{\n\"name\": \"%s\",\n\"cmd\": \"%s\",\n\"icon\": \"%s\"\n}", name, cmd, icon);
+        return Standards.JSON.encode(([ "name": name, "cmd": cmd, "icon": icon, "domains": domains]));
     }
 
     void open(string url)
@@ -55,6 +55,7 @@ class Config()
     int x = 0;
     int y = 0;
     mapping(string:string) patterns = ([ ]);
+    bool save_position_on_exit = false;
 
     void create()
     {
@@ -87,8 +88,15 @@ class Config()
                 default_browser = (browsers[0] && browsers[0]->name) || "";
             if(conf["position"] && sizeof(conf["position"]))
             {
+                save_position_on_exit = conf["position"]["save_position_on_exit"] || false;
                 x = conf["position"]["x"] || 0;
                 y = conf["position"]["y"] || 0;
+                if(save_position_on_exit)
+                {
+                    mapping cache = get_position_cache();
+                    x = cache->x || x;
+                    y = cache->y || y;
+                }
             }
         };
         if(e)
@@ -98,9 +106,38 @@ class Config()
         }
     }
 
+    mapping get_position_cache()
+    {
+        string cache_path = combine_path(getenv("HOME"), ".cache", "BrowserPiker", "position.json");
+        if(Stdio.exist(cache_path))
+            mixed e = catch {
+                mixed conf = Standards.JSON.decode_utf8(Stdio.read_file(cache_path));
+                return conf;
+            };
+
+        return ([ ]);
+    }
+
+    void set_position_cache(mapping m)
+    {
+        if(!save_position_on_exit)
+            return;
+        if(m->x)
+            x = m->x;
+        if(m->y)
+            y = m->y;
+    }
+
+    void save_position_cache()
+    {
+        string cache_path = combine_path(getenv("HOME"), ".cache", "BrowserPiker", "position.json");
+        if(Stdio.mkdirhier(dirname(cache_path)) && save_position_on_exit)
+            Stdio.write_file(cache_path, Standards.JSON.encode(([ "x": x, "y": y ])));
+    }
+
     string encode_json()
     {
-        return sprintf("\"browsers\":\n%s\n", Standards.JSON.encode(browsers->encode_json()));
+        return Standards.JSON.encode(([ "browsers": browsers, "position": ([ "x": x, "y": y ]), "default_browser": default_browser ]));
     }
 }
 
@@ -162,7 +199,8 @@ int main(int argc, array argv)
     vbox->add(hbox);
     vbox->add(status);
     toplevel->add(vbox);
-    toplevel->signal_connect( "destroy", lambda() { exit(0); } );
+    toplevel->signal_connect( "destroy", lambda() { conf->save_position_cache(); exit(0); } );
+    toplevel->signal_connect( "event", lambda(mixed widget, GTK2.GdkEvent e) { if(e->type == "configure") conf->set_position_cache(widget->get_position()); });
     toplevel->move(conf->x,conf->y);
     toplevel->show_all();
     toplevel->raise();

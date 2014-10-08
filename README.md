@@ -41,3 +41,4 @@ domains|array|no
 -------|----|------------
 x|integer|no
 y|integer|no
+save_postion_on_exit|boolean|no
