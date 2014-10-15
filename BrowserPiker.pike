@@ -56,6 +56,7 @@ class Config()
     int y = 0;
     mapping(string:string) patterns = ([ ]);
     bool save_position_on_exit = false;
+    private constant position_cache_file = "position.json";
 
     void create()
     {
@@ -82,10 +83,12 @@ class Config()
                     browsers[-1]->set_domains(b->domains);
                 }
             }
+
             if(conf["default_browser"] && sizeof(conf["default_browser"]))
                 default_browser = conf["default_browser"];
             else
                 default_browser = (browsers[0] && browsers[0]->name) || "";
+
             if(conf["position"] && sizeof(conf["position"]))
             {
                 save_position_on_exit = conf["position"]["save_position_on_exit"] || false;
@@ -93,7 +96,7 @@ class Config()
                 y = conf["position"]["y"] || 0;
                 if(save_position_on_exit)
                 {
-                    mapping cache = get_position_cache();
+                    mapping cache = get_cache(position_cache_file);
                     x = cache->x || x;
                     y = cache->y || y;
                 }
@@ -106,9 +109,9 @@ class Config()
         }
     }
 
-    mapping get_position_cache()
+    mapping get_cache(string filename)
     {
-        string cache_path = combine_path(getenv("HOME"), ".cache", "BrowserPiker", "position.json");
+        string cache_path = combine_path(getenv("HOME"), ".cache", "BrowserPiker", filename);
         if(Stdio.exist(cache_path))
             mixed e = catch {
                 mixed conf = Standards.JSON.decode_utf8(Stdio.read_file(cache_path));
@@ -130,9 +133,14 @@ class Config()
 
     void save_position_cache()
     {
-        string cache_path = combine_path(getenv("HOME"), ".cache", "BrowserPiker", "position.json");
+        save_cache(position_cache_file, ([ "x" : x, "y" : y ]));
+    }
+
+    void save_cache(string filename, mapping data)
+    {
+        string cache_path = combine_path(getenv("HOME"), ".cache", "BrowserPiker", filename);
         if(Stdio.mkdirhier(dirname(cache_path)) && save_position_on_exit)
-            Stdio.write_file(cache_path, Standards.JSON.encode(([ "x": x, "y": y ])));
+            Stdio.write_file(cache_path, Standards.JSON.encode(data));
     }
 
     string encode_json()
