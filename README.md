@@ -27,6 +27,7 @@ to work properly.
 browsers|array|yes
 position|object|no
 default_browser|string|no
+remember_domain|bool|no
 
 ### `browsers` options
 |option|type|is required|

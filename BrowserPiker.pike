@@ -56,7 +56,10 @@ class Config()
     int y = 0;
     mapping(string:string) patterns = ([ ]);
     bool save_position_on_exit = false;
+    bool remember_domain = false;
     private constant position_cache_file = "position.json";
+    private constant domains_cache_file = "domains.json";
+    private mapping(string:string) domains_cache = ([ ]);
 
     void create()
     {
@@ -101,6 +104,12 @@ class Config()
                     y = cache->y || y;
                 }
             }
+
+            if(conf["remember_domain"])
+                remember_domain = conf["remember_domain"];
+                if(remember_domain)
+                    domains_cache = get_cache(domains_cache_file);
+
         };
         if(e)
         {
@@ -109,7 +118,7 @@ class Config()
         }
     }
 
-    mapping get_cache(string filename)
+    private mapping get_cache(string filename)
     {
         string cache_path = combine_path(getenv("HOME"), ".cache", "BrowserPiker", filename);
         if(Stdio.exist(cache_path))
@@ -133,14 +142,36 @@ class Config()
 
     void save_position_cache()
     {
-        save_cache(position_cache_file, ([ "x" : x, "y" : y ]));
+        if(save_position_on_exit)
+            save_cache(position_cache_file, ([ "x" : x, "y" : y ]));
     }
 
-    void save_cache(string filename, mapping data)
+    void save_domains_cache()
+    {
+        if(remember_domain)
+            save_cache(domains_cache_file, domains_cache);
+    }
+
+    void add_cached_domain(Standards.URI uri, string browser)
+    {
+        domains_cache[uri.host] = browser;
+    }
+
+    void remember_domain_toggle()
+    {
+        remember_domain = !remember_domain;
+    }
+
+    private void save_cache(string filename, mapping data)
     {
         string cache_path = combine_path(getenv("HOME"), ".cache", "BrowserPiker", filename);
-        if(Stdio.mkdirhier(dirname(cache_path)) && save_position_on_exit)
+        if(Stdio.mkdirhier(dirname(cache_path)))
             Stdio.write_file(cache_path, Standards.JSON.encode(data));
+    }
+
+    mapping get_domains_cache()
+    {
+        return domains_cache;
     }
 
     string encode_json()
@@ -166,13 +197,24 @@ int main(int argc, array argv)
             return 0;
         }
 
+    if(conf->remember_domain)
+        foreach(conf->get_domains_cache(); string domain; string browser)
+            if(uri.host == domain)
+                foreach(conf->browsers, Browser b)
+                    if(b->name == browser)
+                    {
+                        b->open((string)uri);
+                        return 0;
+                    }
+
+
     argv = GTK2.setup_gtk(argv);
     GTK2.Window toplevel = GTK2.Window( GTK2.WINDOW_TOPLEVEL );
     mapping root_geometry = GTK2.root_window()->get_geometry();
     GTK2.Hbox hbox = GTK2.Hbox(0, 0);
     GTK2.Statusbar status = GTK2.Statusbar();
     int id = status->get_context_id("test");
-    status->push(id, sprintf("URL: %s", uri));
+    status->push(id, sprintf("URL%s: %s", conf->remember_domain ? "(will be saved)" : "", uri));
     foreach(conf->browsers, Browser b)
     {
         GTK2.Button button = GTK2.Button();
@@ -182,6 +224,8 @@ int main(int argc, array argv)
             lambda(mixed widget, mapping args) {
                 toplevel->hide_all();
                 args["browser"]->open(args["url"]);
+                conf->add_cached_domain(uri, args["browser"]->name);
+                conf->save_domains_cache();
                 toplevel->signal_emit("destroy"); },
             ([ "browser": b, "url": (string)uri ]));
         hbox->add(button);
@@ -193,6 +237,11 @@ int main(int argc, array argv)
         {
             if(num > 0 && num <= sizeof(conf->browsers))
                 widget->get_children()[num-1]->signal_emit("pressed");
+        }
+        else if(e->data == "r")
+        {
+            conf->remember_domain_toggle();
+            status->push(id, sprintf("URL%s: %s", conf->remember_domain ? "(will be saved)" : "", uri));
         }
         else if(e->data == "\r")
         {

@@ -27,5 +27,6 @@
         "x": 765,
         "y": 460
     },
-    "default_browser": "Firefox"
+    "default_browser": "Firefox",
+    "remember_domain": true
 }
