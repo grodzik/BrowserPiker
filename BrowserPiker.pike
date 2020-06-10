@@ -54,6 +54,7 @@ class Config()
     string default_browser = "";
     int x = 0;
     int y = 0;
+    int icon_size = 64;
     mapping(string:string) patterns = ([ ]);
     bool save_position_on_exit = false;
     bool remember_domain = false;
@@ -109,6 +110,9 @@ class Config()
                 remember_domain = conf["remember_domain"];
                 if(remember_domain)
                     domains_cache = get_cache(domains_cache_file);
+
+            if(conf["icon_size"])
+                icon_size = conf["icon_size"];
 
         };
         if(e)
@@ -209,7 +213,7 @@ int main(int argc, array argv)
 
 
     argv = GTK2.setup_gtk(argv);
-    GTK2.Window toplevel = GTK2.Window( GTK2.WINDOW_TOPLEVEL );
+    GTK2.Window toplevel = GTK2.Window(GTK2.WINDOW_TOPLEVEL);
     mapping root_geometry = GTK2.root_window()->get_geometry();
     GTK2.Hbox hbox = GTK2.Hbox(0, 0);
     GTK2.Statusbar status = GTK2.Statusbar();
@@ -218,7 +222,9 @@ int main(int argc, array argv)
     foreach(conf->browsers, Browser b)
     {
         GTK2.Button button = GTK2.Button();
-        button->add(GTK2.Image(b->icon));
+        button->add(
+                GTK2.Image(GTK2.GdkPixbuf(b->icon)->scale_simple(conf->icon_size, conf->icon_size))
+                );
         button->signal_connect(
             "pressed",
             lambda(mixed widget, mapping args) {
@@ -258,7 +264,7 @@ int main(int argc, array argv)
     toplevel->add(vbox);
     toplevel->signal_connect( "destroy", lambda() { conf->save_position_cache(); exit(0); } );
     toplevel->signal_connect( "event", lambda(mixed widget, GTK2.GdkEvent e) { if(e->type == "configure") conf->set_position_cache(widget->get_position()); });
-    toplevel->move(conf->x,conf->y);
+    /* toplevel->move(conf->x,conf->y); */
     toplevel->show_all();
     toplevel->raise();
     toplevel->activate_focus();

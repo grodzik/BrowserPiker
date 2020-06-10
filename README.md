@@ -28,6 +28,7 @@ browsers|array|yes
 position|object|no
 default_browser|string|no
 remember_domain|bool|no
+icon_size|integer|no
 
 ### `browsers` options
 |option|type|is required|

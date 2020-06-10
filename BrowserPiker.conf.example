@@ -28,5 +28,6 @@
         "y": 460
     },
     "default_browser": "Firefox",
-    "remember_domain": true
+    "remember_domain": true,
+    "icon_size": 64
 }
